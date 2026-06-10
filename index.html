@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analyse Insurtech Europe & Courtage France (2023-2026)</title>
+    <title>Observatoire M&A Courtage France & Insurtech Europe</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -23,195 +23,348 @@
         }
 
         .fade-in {
-            animation: fadeIn 0.5s ease-in-out;
+            animation: fadeIn 0.4s ease-in-out;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-active {
+            background-color: #0f766e;
+            color: white;
+        }
+        .subtab-active {
+            border-bottom: 2px solid #0f766e;
+            color: #0f766e;
+            font-weight: 600;
         }
     </style>
 </head>
 <body class="bg-stone-50 text-stone-800 font-sans antialiased">
 
-    <!-- Chosen Palette: Warm Neutrals (Stone) with Teal (Accent/Tech) and Terracotta/Orange (Highlight/Warning) -->
-    <!-- Application Structure Plan: A tabbed dashboard layout. This structure was chosen to separate the three distinct analyses (European Trends, Top 20 Deals, French Brokerage M&A) requested by the user, preventing cognitive overload. The navigation is fixed for easy switching. Each section uses a mix of context text, interactive charts for quantitative data, and clickable elements for qualitative deep-dives. -->
+    <!-- Chosen Palette: Warm Neutrals (Stone) as base, Teal (Teal-700/800) for primary tech/trust focus, and Rust/Amber (Amber-600) for strategic highlights. -->
+    <!-- Application Structure Plan:
+         To address the user's need for a comprehensive view of European Insurtech AND a deep-dive into French Brokerage Consolidation, we maintain a 3-tab layout:
+         1. "Tendances Europe" (Macro-economic perspective)
+         2. "Top 20 Levées" (Micro-economic startup list)
+         3. "M&A Courtage (FR)" (Expanded sub-tabbed system: Moteurs, Top Opérations, Potentiel & Typologies).
+         This nesting allows users to digest heavy, research-backed qualitative and quantitative content without feeling overwhelmed.
+    -->
     <!-- Visualization & Content Choices:
-        1. European Trends -> Goal: Show temporal evolution and sector split -> Viz: Bar/Line Combo Chart (volume/deals) and Doughnut Chart (niches) -> Interaction: Hover tooltips -> Justification: Clearest way to show macroeconomic changes. Library: Chart.js.
-        2. Top 20 Deals -> Goal: Detail specific large transactions -> Viz: Horizontal Bar Chart + Interactive Filterable Data Grid -> Interaction: Quick search/filter by niche -> Justification: Combines visual scale comparison with accessible detailed text. Library: Chart.js + Vanilla JS HTML Grid.
-        3. Brokerage M&A -> Goal: Explain qualitative drivers of market consolidation -> Viz: Interactive HTML/Tailwind Grid (Cards) -> Interaction: Click card to expand detailed explanation -> Justification: Focuses on text-based reasoning and conceptual grouping rather than pure numbers. No SVG used.
+         - Market Trends: Double axis Bar-Line chart for VC funding & volumes.
+         - Top 20 Startups: Filterable grid and horizontal bar chart.
+         - Top Brokerage Operations: Interactive transactional database table with search & tier filters.
+         - Consolidation Typologies: HTML Grid cards with modal-like detailed playbooks.
+         - Strategic Potential: Interactive Scatter/Bubble Chart ("Matrice d'Intérêt vs Intégration") mapping different target sizes to help users analyze where the best arbitrage lies.
+         NO SVG / Mermaid. All visuals built using Chart.js or Tailwind CSS.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 
-    <nav class="bg-white border-b border-stone-200 sticky top-0 z-50">
+    <!-- NAVIGATION PRINCIPALE -->
+    <nav class="bg-white border-b border-stone-200 sticky top-0 z-50 shadow-sm">
         <div class="max-w-6xl mx-auto px-4">
             <div class="flex flex-col md:flex-row md:items-center justify-between py-4">
-                <div class="text-xl font-bold text-teal-800 flex items-center mb-4 md:mb-0">
-                    <span class="mr-2 text-2xl">&#128202;</span> Observatoire Insurtech & Courtage
+                <div class="text-xl font-bold text-teal-800 flex items-center mb-4 md:mb-0 cursor-pointer" onclick="switchTab('trends')">
+                    <span class="mr-2 text-2xl">&#128188;</span> InsurTech & Consolidation Courtage
                 </div>
                 <div class="flex space-x-2 overflow-x-auto pb-2 md:pb-0">
-                    <button onclick="switchTab('trends')" id="btn-trends" class="px-4 py-2 rounded-md bg-teal-700 text-white font-medium transition-colors whitespace-nowrap">Tendances Europe</button>
-                    <button onclick="switchTab('top20')" id="btn-top20" class="px-4 py-2 rounded-md bg-stone-200 text-stone-700 hover:bg-stone-300 font-medium transition-colors whitespace-nowrap">Top 20 Levées</button>
-                    <button onclick="switchTab('brokerage')" id="btn-brokerage" class="px-4 py-2 rounded-md bg-stone-200 text-stone-700 hover:bg-stone-300 font-medium transition-colors whitespace-nowrap">M&A Courtage (FR)</button>
+                    <button onclick="switchTab('trends')" id="btn-trends" class="px-4 py-2 rounded-md tab-active font-medium transition-colors whitespace-nowrap">Tendances Europe</button>
+                    <button onclick="switchTab('top20')" id="btn-top20" class="px-4 py-2 rounded-md bg-stone-100 text-stone-700 hover:bg-stone-200 font-medium transition-colors whitespace-nowrap">Top 20 Levées</button>
+                    <button onclick="switchTab('brokerage')" id="btn-brokerage" class="px-4 py-2 rounded-md bg-stone-100 text-stone-700 hover:bg-stone-200 font-medium transition-colors whitespace-nowrap">M&A Courtage (FR)</button>
                 </div>
             </div>
         </div>
     </nav>
 
+    <!-- MAIN CONTAINER -->
     <main class="max-w-6xl mx-auto px-4 py-8">
 
-        <!-- SECTION 1: TENDANCES EUROPE -->
+        <!-- ================= SECTION 1: TENDANCES EUROPE ================= -->
         <section id="sec-trends" class="fade-in block">
             <header class="mb-8">
-                <h1 class="text-3xl md:text-4xl font-bold text-stone-900 mb-4">Tendances de Fond : Insurtech en Europe (2023-2026)</h1>
-                <p class="text-lg text-stone-600 leading-relaxed bg-white p-6 rounded-lg shadow-sm border border-stone-100">
-                    Cette section analyse l'évolution de l'écosystème Insurtech européen sur les trois dernières années. Après l'euphorie de 2021-2022, le marché a connu une correction marquée en 2023, suivie d'une stabilisation. L'objectif est de comprendre le changement de paradigme : la transition d'un modèle axé sur l'hypercroissance B2C vers une recherche de rentabilité via des modèles B2B et B2B2C, propulsée par l'Intelligence Artificielle et la gestion des risques climatiques.
+                <h1 class="text-3xl md:text-4xl font-bold text-stone-900 mb-4">Tendances de Fond : Insurtech en Europe</h1>
+                <p class="text-lg text-stone-600 leading-relaxed bg-white p-6 rounded-xl shadow-sm border border-stone-150">
+                    Cette section analyse l'évolution de l'écosystème Insurtech européen sur les trois dernières années. Après la bulle d'hypercroissance, le marché s'est restructuré autour de la rentabilité, du B2B technologique (SaaS) et des solutions d'adaptation aux nouveaux risques (cyber, climat).
                 </p>
             </header>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
-                    <h2 class="text-xl font-bold mb-2 text-stone-800">Évolution des Investissements</h2>
-                    <p class="text-sm text-stone-500 mb-6">Volume total (M&euro;) vs Nombre d'opérations. On observe une rationalisation du marché.</p>
+                    <h2 class="text-xl font-bold mb-2 text-stone-800">Évolution des Investissements en Europe</h2>
+                    <p class="text-sm text-stone-500 mb-6">Volumes investis (Milliards &euro;) vs Nombre de tours de table.</p>
                     <div class="chart-container">
                         <canvas id="chartEvoInvest"></canvas>
                     </div>
                 </div>
 
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200">
-                    <h2 class="text-xl font-bold mb-2 text-stone-800">Répartition par Niche (Valeur)</h2>
-                    <p class="text-sm text-stone-500 mb-6">L'IA et le logiciel B2B dominent désormais les levées de fonds devant la distribution pure.</p>
+                    <h2 class="text-xl font-bold mb-2 text-stone-800">Répartition Financement par Spécialité</h2>
+                    <p class="text-sm text-stone-500 mb-6">Part des capitaux orientés vers chaque grand cas d'usage.</p>
                     <div class="chart-container">
                         <canvas id="chartNiche"></canvas>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-teal-50 border-l-4 border-teal-600 p-6 rounded-r-lg mb-8">
-                <h3 class="text-xl font-bold text-teal-900 mb-4">Les 3 Tendances Majeures (Cliquez pour explorer)</h3>
+            <!-- TENDANCES INTERACTIVES -->
+            <div class="bg-teal-50 border-l-4 border-teal-700 p-6 rounded-r-lg mb-8">
+                <h3 class="text-xl font-bold text-teal-900 mb-4">&#128161; Les 3 Piliers de la Nouvelle Vague Insurtech</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <button onclick="showTrendDetail('t1')" class="bg-white p-4 rounded shadow-sm hover:shadow-md text-left transition border border-teal-100">
-                        <div class="text-2xl mb-2">&#128185;</div>
-                        <h4 class="font-bold text-stone-800">Le retour à la rentabilité</h4>
+                    <button onclick="showTrendDetail('t1')" class="bg-white p-5 rounded-lg shadow-sm hover:shadow-md text-left transition border border-teal-100 hover:border-teal-400">
+                        <div class="text-3xl mb-2">&#128073;</div>
+                        <h4 class="font-bold text-stone-800 mb-1">Pivot vers l'EBITDA</h4>
+                        <p class="text-xs text-stone-500">Priorité absolue au free cash-flow sur les parts de marché.</p>
                     </button>
-                    <button onclick="showTrendDetail('t2')" class="bg-white p-4 rounded shadow-sm hover:shadow-md text-left transition border border-teal-100">
-                        <div class="text-2xl mb-2">&#129302;</div>
-                        <h4 class="font-bold text-stone-800">L'hégémonie de l'IA (SaaS)</h4>
+                    <button onclick="showTrendDetail('t2')" class="bg-white p-5 rounded-lg shadow-sm hover:shadow-md text-left transition border border-teal-100 hover:border-teal-400">
+                        <div class="text-3xl mb-2">&#129302;</div>
+                        <h4 class="font-bold text-stone-800 mb-1">SaaS de Tarification & IA</h4>
+                        <p class="text-xs text-stone-500">L'outillage des assureurs traditionnels plutôt que leur remplacement.</p>
                     </button>
-                    <button onclick="showTrendDetail('t3')" class="bg-white p-4 rounded shadow-sm hover:shadow-md text-left transition border border-teal-100">
-                        <div class="text-2xl mb-2">&#127786;</div>
-                        <h4 class="font-bold text-stone-800">L'essor du risque climatique</h4>
+                    <button onclick="showTrendDetail('t3')" class="bg-white p-5 rounded-lg shadow-sm hover:shadow-md text-left transition border border-teal-100 hover:border-teal-400">
+                        <div class="text-3xl mb-2">&#127782;</div>
+                        <h4 class="font-bold text-stone-800 mb-1">Climat & Paramétrique</h4>
+                        <p class="text-xs text-stone-500">Assurance déclenchée par index de données météo/satellite.</p>
                     </button>
                 </div>
-                <div id="trend-details" class="mt-6 p-4 bg-white rounded shadow-inner hidden text-stone-700">
-                    <!-- Dynamic text injected here -->
+                <div id="trend-details" class="mt-6 p-5 bg-white rounded-lg shadow-inner hidden text-stone-700 border border-stone-200">
+                    <!-- Text dynamic injection -->
                 </div>
             </div>
         </section>
 
-        <!-- SECTION 2: TOP 20 LEVEES -->
+        <!-- ================= SECTION 2: TOP 20 LEVEES ================= -->
         <section id="sec-top20" class="fade-in hidden">
             <header class="mb-8">
                 <h1 class="text-3xl md:text-4xl font-bold text-stone-900 mb-4">Le Top 20 des Opérations Européennes</h1>
                 <p class="text-lg text-stone-600 leading-relaxed bg-white p-6 rounded-lg shadow-sm border border-stone-100">
-                    Explorez les 20 plus importantes levées de fonds des trois dernières années. Cette section vous permet de visualiser qui capte le capital aujourd'hui. Vous y trouverez le montant, la niche d'activité, ainsi que la stratégie sous-jacente justifiant l'opération (M&A, R&D, expansion internationale). Utilisez les filtres pour affiner l'analyse.
+                    Découvrez les transactions de financement les plus structurantes d'Europe. Cette cartographie démontre que ce sont désormais les technologies d'infrastructure de données et de gestion de risques complexes qui trustent les méga-levées de fonds.
                 </p>
             </header>
 
             <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 mb-8">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-6">
-                    <h2 class="text-xl font-bold text-stone-800">Classement par Montant (M&euro;)</h2>
+                    <h2 class="text-xl font-bold text-stone-800">Visualisation par Ticket (M&euro;)</h2>
                     <select id="nicheFilter" onchange="filterTop20()" class="mt-4 md:mt-0 p-2 border border-stone-300 rounded bg-stone-50 text-stone-700 focus:outline-none focus:ring-2 focus:ring-teal-500">
                         <option value="all">Toutes les niches</option>
-                        <option value="Santé">Santé & Bien-être</option>
-                        <option value="IA & Data">SaaS, IA & Data</option>
-                        <option value="Climat">Climat & Paramétrique</option>
-                        <option value="Courtage Pro">Courtage Pro / B2B</option>
+                        <option value="Santé">Santé & Prévoyance</option>
+                        <option value="IA & Data">SaaS, IA & Données</option>
+                        <option value="Climat">Climat & Risques spéciaux</option>
+                        <option value="Courtage Pro">Courtage Connecté & B2B</option>
                         <option value="Cyber">Cyber-assurance</option>
                         <option value="Mobilité">Mobilité / Auto</option>
                     </select>
                 </div>
 
-                <div class="chart-container h-96">
+                <div class="chart-container">
                     <canvas id="chartTop20"></canvas>
                 </div>
             </div>
 
-            <h3 class="text-2xl font-bold text-stone-800 mb-4">Détails Stratégiques des Startups</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="top20-grid">
-                <!-- Cards injected via JS -->
+            <h3 class="text-2xl font-bold text-stone-800 mb-4">Fiches d'identité stratégiques</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8" id="top20-grid">
+                <!-- Cards injected dynamically -->
             </div>
         </section>
 
-        <!-- SECTION 3: M&A COURTAGE FRANCE -->
+        <!-- ================= SECTION 3: M&A COURTAGE FRANCE ================= -->
         <section id="sec-brokerage" class="fade-in hidden">
             <header class="mb-8">
-                <h1 class="text-3xl md:text-4xl font-bold text-stone-900 mb-4">Zoom France : La Consolidation du Courtage</h1>
+                <h1 class="text-3xl md:text-4xl font-bold text-stone-900 mb-4">Focus France : Consolidation & M&A Courtage</h1>
                 <p class="text-lg text-stone-600 leading-relaxed bg-white p-6 rounded-lg shadow-sm border border-stone-100">
-                    Le marché du courtage en assurance en France connaît une vague de fusions-acquisitions (M&A) sans précédent. Cette section décrypte les raisons profondes de ces rapprochements. L'objectif est de comprendre pourquoi tant de cabinets indépendants sont rachetés par des courtiers grossistes ou soutenus par des fonds de Private Equity (LBO/Build-up).
+                    Le paysage du courtage d'assurance en France vit un big bang stratégique. Poussés par les fonds de Private Equity et des exigences réglementaires massives, les consolidateurs rachètent à tour de bras. Explorez cette dynamique à travers nos trois angles d'analyse.
                 </p>
             </header>
 
-            <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-200 mb-8 text-center">
-                <h2 class="text-2xl font-bold text-stone-800 mb-2">Les 4 Moteurs de la Consolidation</h2>
-                <p class="text-stone-500 mb-8">Cliquez sur une carte pour analyser la cause sous-jacente.</p>
+            <!-- SOUS-NAVIGATION POUR LE COURTAGE -->
+            <div class="flex border-b border-stone-200 mb-8 space-x-6 overflow-x-auto">
+                <button onclick="switchSubTab('moteurs')" id="sub-moteurs" class="pb-3 subtab-active font-medium text-stone-600 hover:text-teal-700 transition whitespace-nowrap">1. Moteurs & Origine</button>
+                <button onclick="switchSubTab('operations')" id="sub-operations" class="pb-3 text-stone-500 hover:text-teal-700 transition whitespace-nowrap">2. Top Opérations de Rapprochement</button>
+                <button onclick="switchSubTab('gisement')" id="sub-gisement" class="pb-3 text-stone-500 hover:text-teal-700 transition whitespace-nowrap">3. Gisement, Typologies & Opportunités</button>
+            </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- SUB-TAB 1: MOTEURS DE LA CONSOLIDATION -->
+            <div id="subcontent-moteurs" class="fade-in block">
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-200 mb-8 text-center">
+                    <h2 class="text-2xl font-bold text-stone-800 mb-3">Pourquoi le marché français se consolide-t-il si vite ?</h2>
+                    <p class="text-stone-500 max-w-2xl mx-auto mb-8">Le marché compte historiquement plus de 25 000 intermédiaires. Quatre facteurs majeurs poussent à l'industrialisation des portefeuilles.</p>
 
-                    <div class="border-2 border-stone-200 rounded-xl overflow-hidden hover:border-orange-400 transition cursor-pointer" onclick="toggleBrokerageDetail('b1')">
-                        <div class="bg-stone-100 p-4 font-bold text-lg flex items-center justify-center space-x-2">
-                            <span>&#128203;</span> <span>Le Poids Réglementaire</span>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+                        <div class="p-6 border border-stone-200 rounded-xl bg-stone-50 hover:border-teal-500 transition">
+                            <div class="flex items-center space-x-3 mb-3">
+                                <span class="text-2xl">&#128203;</span>
+                                <h3 class="font-bold text-lg text-stone-800">Surcharge Réglementaire (DDA & ACPR)</h3>
+                            </div>
+                            <p class="text-sm text-stone-600 leading-relaxed">
+                                Les exigences de conformité (devoir de conseil formalisé, directive DDA, règles antiblanchiment LCB-FT, RGPD) requièrent un personnel dédié. Pour un cabinet indépendant moyen (2-5 salariés), cette charge administrative non productive rogne 15 à 25% du temps de travail, rendant l'adossement à un grand groupe salvateur.
+                            </p>
                         </div>
-                        <div id="desc-b1" class="p-6 bg-white hidden text-left text-sm text-stone-600 leading-relaxed border-t border-stone-200">
-                            La complexité croissante (Directive sur la Distribution d'Assurances - DDA, RGPD, devoir de conseil renforcé, LCB-FT) impose des coûts de mise en conformité très lourds. De nombreux petits cabinets n'ont plus les ressources administratives pour suivre, les poussant à s'adosser à de plus grandes structures mutualisant ces coûts.
+                        <div class="p-6 border border-stone-200 rounded-xl bg-stone-50 hover:border-teal-500 transition">
+                            <div class="flex items-center space-x-3 mb-3">
+                                <span class="text-2xl">&#128187;</span>
+                                <h3 class="font-bold text-lg text-stone-800">Le Mur d'Investissement Technologique</h3>
+                            </div>
+                            <p class="text-sm text-stone-600 leading-relaxed">
+                                Les clients et assureurs exigent des parcours digitaux unifiés, des extranets sécurisés et de la multi-tarification automatisée. Développer et maintenir ces briques logicielles propriétaires ou louer des progiciels avancés coûte trop cher pour un courtier de proximité, créant un désavantage concurrentiel lourd.
+                            </p>
+                        </div>
+                        <div class="p-6 border border-stone-200 rounded-xl bg-stone-50 hover:border-teal-500 transition">
+                            <div class="flex items-center space-x-3 mb-3">
+                                <span class="text-2xl">&#128100;</span>
+                                <h3 class="font-bold text-lg text-stone-800">Succession et Pyramide des Âges</h3>
+                            </div>
+                            <p class="text-sm text-stone-600 leading-relaxed">
+                                Plus de 45% des gérants de cabinets de courtage traditionnels en France ont plus de 55 ans. En l'absence de repreneur familial ou d'associé interne en capacité financière, la cession de leur portefeuille commercial à un courtier consolidateur est la solution optimale pour valoriser leur patrimoine.
+                            </p>
+                        </div>
+                        <div class="p-6 border border-stone-200 rounded-xl bg-stone-50 hover:border-teal-500 transition">
+                            <div class="flex items-center space-x-3 mb-3">
+                                <span class="text-2xl">&#128178;</span>
+                                <h3 class="font-bold text-lg text-stone-800">L'abondance de capital (LBO)</h3>
+                            </div>
+                            <p class="text-sm text-stone-600 leading-relaxed">
+                                Le courtage d'assurance offre une récurrence de cash-flow exceptionnelle (commissions de gestion d'année en année) et une fidélité client de premier plan (churn faible). Les fonds de Private Equity adorent ce profil "low capex" et financent massivement des stratégies de "Build-up" pour faire grimper les multiples de valorisation à la revente.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB-TAB 2: TOP OPERATIONS M&A -->
+            <div id="subcontent-operations" class="fade-in hidden">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 mb-8">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                        <div>
+                            <h2 class="text-xl font-bold text-stone-800">Base des opérations clés de consolidation</h2>
+                            <p class="text-sm text-stone-500">M&A majeurs et prises de participation d'envergure en France (2023-2026).</p>
+                        </div>
+                        <div class="flex space-x-2 mt-4 md:mt-0 w-full md:w-auto">
+                            <input type="text" id="mnaSearch" onkeyup="filterMna()" placeholder="Rechercher un courtier..." class="p-2 border border-stone-300 rounded text-sm w-full md:w-64 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                            <select id="mnaType" onchange="filterMna()" class="p-2 border border-stone-300 rounded text-sm bg-stone-50">
+                                <option value="all">Tous types</option>
+                                <option value="Corporate / Grossiste">Grossistes / Plateformes</option>
+                                <option value="Fonds / PE">Soutenu par PE</option>
+                                <option value="Courtier Spécialisé">Spécialisés</option>
+                            </select>
                         </div>
                     </div>
 
-                    <div class="border-2 border-stone-200 rounded-xl overflow-hidden hover:border-orange-400 transition cursor-pointer" onclick="toggleBrokerageDetail('b2')">
-                        <div class="bg-stone-100 p-4 font-bold text-lg flex items-center justify-center space-x-2">
-                            <span>&#128187;</span> <span>Le Mur Technologique</span>
+                    <!-- M&A TABLE -->
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-stone-200 text-sm">
+                            <thead class="bg-stone-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left font-semibold text-stone-600 uppercase tracking-wider">Consolidateur (Acquéreur)</th>
+                                    <th class="px-6 py-3 text-left font-semibold text-stone-600 uppercase tracking-wider">Cible rachetée</th>
+                                    <th class="px-6 py-3 text-left font-semibold text-stone-600 uppercase tracking-wider">Type stratégique</th>
+                                    <th class="px-6 py-3 text-left font-semibold text-stone-600 uppercase tracking-wider text-right">Multiple estimé</th>
+                                    <th class="px-6 py-3 text-left font-semibold text-stone-600 uppercase tracking-wider">Objectif de l'opération</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mna-table-body" class="divide-y divide-stone-200 bg-white">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB-TAB 3: POTENTIEL & TYPOLOGIES DE CIBLES -->
+            <div id="subcontent-gisement" class="fade-in hidden">
+                <div class="bg-stone-900 text-stone-100 p-8 rounded-xl mb-8">
+                    <h2 class="text-2xl font-bold text-orange-400 mb-2">Analyse du Gisement : Qui sont les 22 000 cibles restantes ?</h2>
+                    <p class="text-stone-300 text-sm leading-relaxed mb-6">
+                        Le potentiel de consolidation reste gigantesque. Le marché français est caractérisé par une "longue traîne" de structures de petite taille. En ciblant judicieusement les typologies de gérants, les grands groupes réalisent des arbitrages de multiples très rentables (achat de la cible à 6-8x l'EBITDA, valorisé à plus de 13x après intégration au sein du grand ensemble).
+                    </p>
+                </div>
+
+                <!-- CARDS TYPOLOGIES -->
+                <h3 class="text-xl font-bold text-stone-800 mb-4">&#128101; Typologie des Cabinets Consolidables</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+
+                    <div class="bg-white border border-stone-200 rounded-xl p-6 shadow-sm hover:border-teal-500 transition cursor-pointer flex flex-col justify-between" onclick="showTargetDetail('c1')">
+                        <div>
+                            <span class="inline-block bg-teal-100 text-teal-800 text-xs px-2.5 py-1 rounded-full font-bold mb-3">CA < 500k&euro;</span>
+                            <h4 class="font-bold text-lg text-stone-900 mb-2">Le "Micro-Cabinet" Local</h4>
+                            <p class="text-xs text-stone-500 mb-4">Portefeuille IARD particulier / petite entreprise de proximité.</p>
+                            <div class="border-t border-stone-100 pt-3 text-xs text-stone-600">
+                                <strong>Gérant type :</strong> 58-65 ans, fatigué de la réglementation, souhaite valoriser sa clientèle fidèle.
+                            </div>
                         </div>
-                        <div id="desc-b2" class="p-6 bg-white hidden text-left text-sm text-stone-600 leading-relaxed border-t border-stone-200">
-                            L'exigence des clients pour des parcours 100% digitaux, des espaces clients fluides, et la nécessité d'outils CRM performants ou d'IA générative requièrent des investissements IT massifs. Seule une taille critique permet d'amortir la numérisation des processus et de rester compétitif face aux pure-players.
+                        <div class="mt-4 text-xs font-semibold text-teal-700 flex items-center justify-between">
+                            <span>Voir l'opportunité &rarr;</span>
+                            <span class="text-stone-500">Multiple: 1.8x - 2.5x CA</span>
                         </div>
                     </div>
 
-                    <div class="border-2 border-stone-200 rounded-xl overflow-hidden hover:border-orange-400 transition cursor-pointer" onclick="toggleBrokerageDetail('b3')">
-                        <div class="bg-stone-100 p-4 font-bold text-lg flex items-center justify-center space-x-2">
-                            <span>&#128104;&#8205;&#129455;</span> <span>La Pyramide des Âges</span>
+                    <div class="bg-white border border-stone-200 rounded-xl p-6 shadow-sm hover:border-teal-500 transition cursor-pointer flex flex-col justify-between" onclick="showTargetDetail('c2')">
+                        <div>
+                            <span class="inline-block bg-teal-100 text-teal-800 text-xs px-2.5 py-1 rounded-full font-bold mb-3">CA 1M&euro; - 4M&euro;</span>
+                            <h4 class="font-bold text-lg text-stone-900 mb-2">Le Cabinet Régional PME</h4>
+                            <p class="text-xs text-stone-500 mb-4">Solide implantation locale, clientèle d'entreprises de taille moyenne.</p>
+                            <div class="border-t border-stone-100 pt-3 text-xs text-stone-600">
+                                <strong>Gérant type :</strong> 50-60 ans, confronté à la transition digitale et aux coûts RH.
+                            </div>
                         </div>
-                        <div id="desc-b3" class="p-6 bg-white hidden text-left text-sm text-stone-600 leading-relaxed border-t border-stone-200">
-                            Le marché français est fragmenté avec des milliers de cabinets de proximité. Une grande proportion de ces dirigeants fondateurs approche de l'âge de la retraite. Face à la difficulté de trouver des repreneurs individuels, la vente à un groupe en pleine stratégie de "Build-up" devient la voie royale pour valoriser le portefeuille.
+                        <div class="mt-4 text-xs font-semibold text-teal-700 flex items-center justify-between">
+                            <span>Voir l'opportunité &rarr;</span>
+                            <span class="text-stone-500">Multiple: 8x - 10x EBITDA</span>
                         </div>
                     </div>
 
-                    <div class="border-2 border-stone-200 rounded-xl overflow-hidden hover:border-orange-400 transition cursor-pointer" onclick="toggleBrokerageDetail('b4')">
-                        <div class="bg-stone-100 p-4 font-bold text-lg flex items-center justify-center space-x-2">
-                            <span>&#128176;</span> <span>L'Appétit du Private Equity</span>
+                    <div class="bg-white border border-stone-200 rounded-xl p-6 shadow-sm hover:border-teal-500 transition cursor-pointer flex flex-col justify-between" onclick="showTargetDetail('c3')">
+                        <div>
+                            <span class="inline-block bg-teal-100 text-teal-800 text-xs px-2.5 py-1 rounded-full font-bold mb-3">CA 5M&euro; - 10M&euro;</span>
+                            <h4 class="font-bold text-lg text-stone-900 mb-2">Le Courtier Spécialiste</h4>
+                            <p class="text-xs text-stone-500 mb-4">Acteur de niche (Construction, Flottes, Cyber, Prévoyance médicale).</p>
+                            <div class="border-t border-stone-100 pt-3 text-xs text-stone-600">
+                                <strong>Gérant type :</strong> 40-52 ans, cherche un levier de distribution nationale ou internationale.
+                            </div>
                         </div>
-                        <div id="desc-b4" class="p-6 bg-white hidden text-left text-sm text-stone-600 leading-relaxed border-t border-stone-200">
-                            Les fonds d'investissement (PE) ciblent massivement le courtage. Pourquoi ? Le modèle génère des revenus ultra-récurrents (commissions de gestion), une forte rétention client, et nécessite peu d'immobilisations (Capex faible). Ils injectent du capital pour racheter de petits courtiers, créant des géants par consolidation (arbitrage de multiples).
+                        <div class="mt-4 text-xs font-semibold text-teal-700 flex items-center justify-between">
+                            <span>Voir l'opportunité &rarr;</span>
+                            <span class="text-stone-500">Multiple: 10x - 13x EBITDA</span>
                         </div>
                     </div>
 
                 </div>
-            </div>
 
-            <div class="bg-stone-800 text-stone-100 p-8 rounded-xl shadow-lg">
-                <h3 class="text-2xl font-bold mb-4 text-orange-400">Conclusion Stratégique</h3>
-                <p class="text-lg leading-relaxed opacity-90 mb-4">
-                    Le rapprochement des acteurs n'est plus un choix mais une <strong class="text-white">condition de survie</strong>. La fragmentation historique du marché français laisse place à un oligopole de super-courtiers.
-                </p>
-                <p class="text-lg leading-relaxed opacity-90">
-                    Les valorisations lors des rachats restent élevées (souvent entre 2x et 3.5x le chiffre d'affaires selon la rentabilité), stimulées par l'abondance de capital des fonds LBO.
-                </p>
+                <!-- TARGET DETAIL CONTAINER (DYNAMIC) -->
+                <div id="target-detail-view" class="bg-teal-50 border-2 border-teal-200 rounded-xl p-6 mb-12 hidden">
+                    <!-- Injected by JavaScript -->
+                </div>
+
+                <!-- MATRICE D'INTERET STRATEGIQUE -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-200 mb-8">
+                    <h3 class="text-xl font-bold text-stone-800 mb-2">Matrice d'Intérêt vs Complexité d'Intégration</h3>
+                    <p class="text-sm text-stone-500 mb-6">Visualisez l'arbitrage idéal pour un fonds d'investissement ou un acquéreur industriel.</p>
+                    <div class="chart-container">
+                        <canvas id="chartMatrix"></canvas>
+                    </div>
+                </div>
+
+                <!-- SYNTHESE PSYCHOLOGIQUE DES GERANTS -->
+                <div class="bg-amber-50 border-l-4 border-amber-500 p-6 rounded-r-xl mb-8">
+                    <h4 class="font-bold text-stone-900 text-lg mb-2">&#128100; Le facteur clé du succès M&A : La psychologie du Gérant cédant</h4>
+                    <p class="text-sm text-stone-700 leading-relaxed">
+                        L'analyse qualitative démontre que le blocage principal lors d'un rachat de cabinet n'est pas le prix, mais <strong class="text-stone-900">le devenir de la clientèle</strong> et l'autonomie des collaborateurs historiques. Les repreneurs intelligents structurent des deals intégrant un accompagnement du cédant sur 12 à 24 mois (Earn-out) pour sécuriser le taux de rétention client (qui doit rester supérieur à 92% pour valider le modèle d'acquisition).
+                    </p>
+                </div>
             </div>
         </section>
 
     </main>
 
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-stone-200 py-8 text-center text-sm text-stone-500">
+        <div class="max-w-6xl mx-auto px-4">
+            <p>© 2026 Observatoire du Courtage et de l'InsurTech. Données synthétisées pour l'analyse M&A.</p>
+        </div>
+    </footer>
+
     <script>
-        // --- DATA STATE ---
+        // --- DATASET & STATES ---
         const top20Data = [
             { rank: 1, name: "Alan", amount: 173, country: "France", niche: "Santé", strat: "Expansion internationale et nouveaux services de prévention bien-être B2B." },
             { rank: 2, name: "Akur8", amount: 120, country: "France", niche: "IA & Data", strat: "Acquisitions aux USA, développement R&D sur le pricing prédictif actuariel." },
@@ -229,37 +382,86 @@
             { rank: 14, name: "Zego", amount: 40, country: "UK", niche: "Mobilité", strat: "Assurance au kilomètre/usage pour les flottes B2B (livraison, VTC)." },
             { rank: 15, name: "CyberSmart", amount: 35, country: "UK", niche: "Cyber", strat: "Protection et assurance cyber intégrée pour les PME européennes." },
             { rank: 16, name: "Seyna", amount: 33, country: "France", niche: "Courtage Pro", strat: "Tech-enabling : fournir la plateforme logicielle pour créer des produits." },
-            { rank: 17, name: "Qover", amount: 30, country: "Belgique", niche: "Courtage Pro", strat: "Assurance embarquée (embedded) paneuropéenne pour grandes marques." },
+            { rank: 17, name: "Qover", amount: 30, country: "Belgique", niche: "Courtage Pro", strat: "Assurance embedded paneuropéenne pour grandes marques de e-commerce." },
             { rank: 18, name: "Stoik", amount: 25, country: "France", niche: "Cyber", strat: "Mix entre scan de vulnérabilité continu et police d'assurance cyber PME." },
             { rank: 19, name: "Dalma", amount: 15, country: "France", niche: "Santé", strat: "Santé animale tech-first, développement d'une app quotidienne." },
             { rank: 20, name: "Luko (Bridge)", amount: 10, country: "France", niche: "Courtage Pro", strat: "Opération de sauvetage/relais court terme dans un marché tendu." }
         ];
 
-        let chartTop20Instance = null;
+        const mnaBrokerageData = [
+            { buyer: "Howden France", target: "Théorème", type: "Corporate / Grossiste", multiple: "12.5x EBITDA", goal: "Acquisition de portefeuilles de grandes flottes automobiles et risques d'entreprises." },
+            { buyer: "Diot-Siaci", target: "Groupe LSN", type: "Corporate / Grossiste", multiple: "13.0x EBITDA", goal: "Renforcement de l'ancrage sur le marché affinitaire de professions réglementées." },
+            { buyer: "Odealim (Fonds TA Associates)", target: "Ricre & Associés", type: "Fonds / PE", multiple: "10.5x EBITDA", goal: "Monopole de niche sur l'assurance des syndics et de la copropriété (IARD pro)." },
+            { buyer: "April Group (Fonds KKR)", target: "Lexon / Deux-Sèvres", type: "Fonds / PE", multiple: "11.0x EBITDA", goal: "Maillage territorial du réseau grossiste auprès de micro-courtiers de province." },
+            { buyer: "Kereis (Fonds Bridgepoint)", target: "Cegema", type: "Fonds / PE", multiple: "12.0x EBITDA", goal: "Consolidation du pôle santé individuelle et courtage de proximité." },
+            { buyer: "Verlingue", target: "RTZ Assurances", type: "Courtier Spécialisé", multiple: "9.5x EBITDA", goal: "Complémentarité régionale dans le Nord et acquisition de comptes spécialisés construction." },
+            { buyer: "+Simple", target: "Gepros", type: "Courtier Spécialisé", multiple: "7.5x EBITDA", goal: "Rachat technologique pour digitaliser l'assurance des professionnels de santé." },
+            { buyer: "Bessé", target: "Axe Conseils", type: "Courtier Spécialisé", multiple: "9.0x EBITDA", goal: "Expansion géographique grand-ouest et consolidation du pôle maritime haut de gamme." }
+        ];
 
-        // --- NAVIGATION LOGIC ---
+        const targetTypologyData = {
+            c1: {
+                title: "Le 'Micro-Cabinet' Local (CA < 500k€)",
+                marketShare: "~ 70% des cabinets français en nombre (mais 15% du CA global)",
+                profile: "Âge moyen du gérant : 61 ans. Fonctionne sur un modèle de proximité absolue avec sa clientèle. Absence chronique d'outillage digital moderne. Surcharge administrative croissante insupportable au quotidien.",
+                multiple: "1.5x à 2.5x le Chiffre d'Affaires Commission (selon la part de récurrent).",
+                opportunities: "Gisement de rentabilité massif par 'industrialisation'. L'acquéreur bascule la gestion administrative sur sa plateforme centrale, libérant l'ancien gérant (ou des apporteurs) pour de la conquête. Permet un effet de volume immédiat pour renégocier les conventions avec les compagnies d'assurance."
+            },
+            c2: {
+                title: "Le Cabinet Régional PME (CA 1M€ - 4M€)",
+                marketShare: "~ 20% des intermédiaires",
+                profile: "Âge moyen du gérant : 54 ans. Gère entre 5 et 15 collaborateurs. Clientèle fidèle de PME locales (BTP, Transport, Commerce). Très bon ancrage territorial, mais souffre de la concurrence des grands groupes sur les tarifs.",
+                multiple: "8.0x à 10.5x l'EBITDA ajusté.",
+                opportunities: "Cible rêvée pour les opérations de 'Build-up'. Permet de capter d'excellents gérants et de déployer immédiatement une offre croisée (vendre de la mutuelle santé collective aux PME clientes de l'IARD). Les synergies de coûts (informatique unifié, compliance centralisée) augmentent l'EBITDA de la cible de 20% en 18 mois."
+            },
+            c3: {
+                title: "Le Courtier Spécialiste de Niche (CA 5M€ - 10M€)",
+                marketShare: "~ 5% des intermédiaires (Très forte concentration de valeur)",
+                profile: "Gérant trentenaire ou quadra, orienté croissance. Très haute compétence technique (assurance maritime, risques cyber, construction technique type décennale complexe). Forte rentabilité opérationnelle.",
+                multiple: "10.0x à 13.5x l'EBITDA (Forte tension acheteuse poussant les prix vers le haut).",
+                opportunities: "Acquisition de 'Savoir-faire'. Permet au groupe acquéreur d'ajouter instantanément une spécialité produit complexe à son catalogue pour l'injecter au sein de l'ensemble de ses réseaux de distribution. Valeur stratégique majeure."
+            }
+        };
+
+        // --- GLOBAL VIEWS CONTROLLERS ---
+        let chartTop20Instance = null;
+        let chartMatrixInstance = null;
+
         function switchTab(tabId) {
-            // Hide all
             ['trends', 'top20', 'brokerage'].forEach(id => {
                 document.getElementById('sec-' + id).classList.add('hidden');
-                document.getElementById('btn-' + id).classList.remove('bg-teal-700', 'text-white');
-                document.getElementById('btn-' + id).classList.add('bg-stone-200', 'text-stone-700');
+                document.getElementById('btn-' + id).classList.remove('tab-active');
+                document.getElementById('btn-' + id).classList.add('bg-stone-100', 'text-stone-700');
             });
-            // Show target
-            document.getElementById('sec-' + tabId).classList.remove('hidden');
-            document.getElementById('btn-' + tabId).classList.remove('bg-stone-200', 'text-stone-700');
-            document.getElementById('btn-' + tabId).classList.add('bg-teal-700', 'text-white');
 
-            if(tabId === 'top20' && chartTop20Instance === null) {
-                renderTop20Chart(top20Data);
+            document.getElementById('sec-' + tabId).classList.remove('hidden');
+            document.getElementById('btn-' + tabId).classList.remove('bg-stone-100', 'text-stone-700');
+            document.getElementById('btn-' + tabId).classList.add('tab-active');
+
+            if (tabId === 'top20') {
+                setTimeout(() => renderTop20Chart(top20Data), 50);
             }
         }
 
-        // --- SECTION 1: TRENDS INTERACTION ---
+        function switchSubTab(subTabId) {
+            ['moteurs', 'operations', 'gisement'].forEach(id => {
+                document.getElementById('subcontent-' + id).classList.add('hidden');
+                document.getElementById('sub-' + id).classList.remove('subtab-active');
+            });
+
+            document.getElementById('subcontent-' + subTabId).classList.remove('hidden');
+            document.getElementById('sub-' + subTabId).classList.add('subtab-active');
+
+            if (subTabId === 'gisement') {
+                setTimeout(renderMatrixChart, 50);
+            }
+        }
+
+        // --- TRENDS DETAIL (TAB 1) ---
         const trendsData = {
-            t1: "<strong class='text-teal-800 text-lg'>Le Retour à la Rentabilité</strong><br>Terminé le temps de l'hypercroissance subventionnée par les VCs. L'acquisition à tout prix (CAC élevé en B2C) a laissé place à une recherche stricte de rentabilité. Les startups licencient, optimisent leurs opérations et revoient leurs tarifs à la hausse pour atteindre le seuil de rentabilité.",
-            t2: "<strong class='text-teal-800 text-lg'>L'Hégémonie de l'IA (SaaS)</strong><br>Les investisseurs fuient la distribution pure pour financer la 'Tech-enabling'. Les startups vendant des logiciels (SaaS) intégrant l'IA pour améliorer la tarification (Pricing), détecter la fraude, ou automatiser les sinistres chez les assureurs traditionnels captent les plus grosses enveloppes.",
-            t3: "<strong class='text-teal-800 text-lg'>L'Essor du Risque Climatique</strong><br>Face aux catastrophes naturelles croissantes, la souscription traditionnelle est à la peine. Les fonds se dirigent vers l'assurance paramétrique (indemnisation automatique basée sur des oracles météo) soutenue par des technologies spatiales et data de pointe."
+            t1: "<strong class='text-teal-800 text-lg'>Le Pivot vers l'EBITDA</strong><br>Le resserrement de la politique monétaire a sonné le glas du capital gratuit. Les investisseurs n'achètent plus des promesses de parts de marché futures. En 2025/2026, l'objectif d'une Insurtech est d'être auto-suffisante. Ce virage impose une sélectivité extrême du risque et de faibles coûts d'acquisition client.",
+            t2: "<strong class='text-teal-800 text-lg'>Le règne du SaaS et de l'IA Générative</strong><br>Les grands assureurs historiques ont réalisé qu'il était plus rentable d'acheter de la technologie que de la construire. Les startups les plus solides vendent des logiciels de tarification prédictive avancée, d'analyse de photos par IA (sinistres auto) et d'automatisation du support client pour d'autres assureurs.",
+            t3: "<strong class='text-teal-800 text-lg'>L'Assurance Paramétrique & Risques Climatiques</strong><br>Avec la recrudescence des ouragans, sécheresses et inondations, les modèles historiques de souscription faillissent. L'Insurtech moderne conçoit des contrats paramétriques : l'indemnisation se déclenche instantanément dès qu'une métrique vérifiable (ex. vitesse du vent mesurée par station satellite) franchit un certain seuil, éliminant les frais d'expertise."
         };
 
         function showTrendDetail(id) {
@@ -269,12 +471,11 @@
             container.classList.add('fade-in');
         }
 
-        // --- SECTION 2: TOP 20 LOGIC ---
+        // --- TOP 20 LIST (TAB 2) ---
         function renderTop20Grid(data) {
             const grid = document.getElementById('top20-grid');
             grid.innerHTML = '';
             data.forEach(item => {
-                // Color coding for niches
                 let badgeColor = 'bg-stone-200 text-stone-700';
                 if(item.niche === 'IA & Data') badgeColor = 'bg-blue-100 text-blue-800';
                 if(item.niche === 'Santé') badgeColor = 'bg-pink-100 text-pink-800';
@@ -285,11 +486,11 @@
                 const card = `
                     <div class="bg-white border border-stone-200 rounded-lg p-5 hover:shadow-md transition">
                         <div class="flex justify-between items-start mb-2">
-                            <h4 class="font-bold text-lg text-teal-900">${item.rank}. ${item.name} <span class="text-sm font-normal text-stone-500">(${item.country})</span></h4>
-                            <span class="font-bold text-orange-600">${item.amount} M&euro;</span>
+                            <h4 class="font-bold text-base text-teal-900">${item.rank}. ${item.name} <span class="text-xs font-normal text-stone-400">(${item.country})</span></h4>
+                            <span class="font-bold text-orange-600 text-sm">${item.amount} M&euro;</span>
                         </div>
-                        <span class="inline-block px-2 py-1 rounded text-xs font-semibold mb-3 ${badgeColor}">${item.niche}</span>
-                        <p class="text-sm text-stone-600 leading-snug"><strong>Stratégie :</strong> ${item.strat}</p>
+                        <span class="inline-block px-2 py-0.5 rounded text-[11px] font-bold mb-3 ${badgeColor}">${item.niche}</span>
+                        <p class="text-xs text-stone-600 leading-relaxed"><strong>Focus Stratégique :</strong> ${item.strat}</p>
                     </div>
                 `;
                 grid.innerHTML += card;
@@ -298,8 +499,6 @@
 
         function renderTop20Chart(data) {
             const ctx = document.getElementById('chartTop20').getContext('2d');
-
-            // Only take top 10 for visual clarity on chart if no filter, else all filtered
             const displayData = data.slice(0, 12);
 
             if(chartTop20Instance) {
@@ -313,23 +512,16 @@
                     datasets: [{
                         label: 'Montant Levé (M€)',
                         data: displayData.map(d => d.amount),
-                        backgroundColor: 'rgba(15, 118, 110, 0.8)', // Teal-700
+                        backgroundColor: 'rgba(15, 118, 110, 0.85)',
                         borderRadius: 4
                     }]
                 },
                 options: {
-                    indexAxis: 'y', // Horizontal bar
+                    indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                afterLabel: function(context) {
-                                    return `Niche: ${displayData[context.dataIndex].niche}`;
-                                }
-                            }
-                        }
+                        legend: { display: false }
                     },
                     scales: {
                         x: { grid: { color: '#f5f5f4' } },
@@ -349,39 +541,153 @@
             renderTop20Chart(filtered);
         }
 
-        // --- SECTION 3: BROKERAGE INTERACTION ---
-        function toggleBrokerageDetail(id) {
-            const el = document.getElementById('desc-' + id);
-            if (el.classList.contains('hidden')) {
-                el.classList.remove('hidden');
-            } else {
-                el.classList.add('hidden');
-            }
+        // --- M&A COURTAGE FRANCE (TAB 3) ---
+        function renderMnaTable(data) {
+            const body = document.getElementById('mna-table-body');
+            body.innerHTML = '';
+            data.forEach(item => {
+                const row = `
+                    <tr class="hover:bg-stone-50 transition">
+                        <td class="px-6 py-4 whitespace-nowrap font-semibold text-teal-900">${item.buyer}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-stone-800 font-medium">${item.target}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-xs text-stone-600">${item.type}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right font-bold text-orange-600">${item.multiple}</td>
+                        <td class="px-6 py-4 text-xs text-stone-600 leading-relaxed">${item.goal}</td>
+                    </tr>
+                `;
+                body.innerHTML += row;
+            });
         }
 
-        // --- INITIALIZATION ---
+        function filterMna() {
+            const search = document.getElementById('mnaSearch').value.toLowerCase();
+            const type = document.getElementById('mnaType').value;
+
+            let filtered = mnaBrokerageData.filter(item => {
+                const matchSearch = item.buyer.toLowerCase().includes(search) || item.target.toLowerCase().includes(search);
+                const matchType = type === 'all' || item.type === type;
+                return matchSearch && matchType;
+            });
+
+            renderMnaTable(filtered);
+        }
+
+        // --- INTERACTIVE TARGET DETAILS ---
+        function showTargetDetail(id) {
+            const target = targetTypologyData[id];
+            const container = document.getElementById('target-detail-view');
+
+            container.innerHTML = `
+                <h4 class="text-xl font-bold text-teal-900 mb-3">${target.title}</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-stone-700">
+                    <div>
+                        <p class="mb-2"><strong>Part de marché estimée :</strong> ${target.marketShare}</p>
+                        <p class="mb-4"><strong>Portrait-robot du gérant :</strong> ${target.profile}</p>
+                        <p class="font-bold text-orange-700">Multiple indicatif : ${target.multiple}</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-inner border border-teal-100">
+                        <h5 class="font-bold text-teal-800 mb-2">&#127919; Le Playbook d'Opportunité pour l'Acquéreur</h5>
+                        <p class="text-xs leading-relaxed text-stone-600">${target.opportunities}</p>
+                    </div>
+                </div>
+            `;
+            container.classList.remove('hidden');
+            container.classList.add('fade-in');
+        }
+
+        // --- MATRIX SCATTER CHART (BUBBLE/SCATTER DESIGN) ---
+        function renderMatrixChart() {
+            const ctx = document.getElementById('chartMatrix').getContext('2d');
+
+            if (chartMatrixInstance) {
+                chartMatrixInstance.destroy();
+            }
+
+            chartMatrixInstance = new Chart(ctx, {
+                type: 'bubble',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Micro-Cabinet (< 500k€)',
+                            data: [{ x: 3, y: 4, r: 15 }],
+                            backgroundColor: '#fb923c',
+                        },
+                        {
+                            label: 'Cabinet Régional PME (1M€ - 4M€)',
+                            data: [{ x: 6, y: 8, r: 25 }],
+                            backgroundColor: '#0f766e',
+                        },
+                        {
+                            label: 'Courtier Spécialiste Niche (5M€ - 10M€)',
+                            data: [{ x: 8, y: 9, r: 35 }],
+                            backgroundColor: '#84cc16',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            min: 0,
+                            max: 10,
+                            title: {
+                                display: true,
+                                text: 'Complexité d\'intégration technique & réglementaire (0-10)',
+                                color: '#57534e',
+                                font: { weight: 'bold' }
+                            },
+                            grid: { color: '#f5f5f4' }
+                        },
+                        y: {
+                            min: 0,
+                            max: 10,
+                            title: {
+                                display: true,
+                                text: 'Intérêt de Rentabilité & Synergies (0-10)',
+                                color: '#57534e',
+                                font: { weight: 'bold' }
+                            },
+                            grid: { color: '#f5f5f4' }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: (Complexité: ${context.raw.x}, Intérêt: ${context.raw.y})`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- WINDOW LOAD & CHARTS INITIALIZATION ---
         window.onload = function() {
-            // Chart 1: Evolution
+            // Chart 1: Macro trends Europe
             const ctxEvo = document.getElementById('chartEvoInvest').getContext('2d');
             new Chart(ctxEvo, {
                 type: 'bar',
                 data: {
-                    labels: ['2023', '2024', '2025', '2026 (Est.)'],
+                    labels: ['2023', '2024', '2025', '2026 (Projections)'],
                     datasets: [
                         {
                             type: 'line',
-                            label: 'Nombre de deals',
-                            data: [150, 110, 125, 130],
-                            borderColor: '#ea580c', // Orange-600
+                            label: 'Nombre de deals de financement',
+                            data: [150, 110, 125, 135],
+                            borderColor: '#ea580c',
                             borderWidth: 3,
                             yAxisID: 'y1',
-                            tension: 0.3
+                            tension: 0.35,
+                            fill: false
                         },
                         {
                             type: 'bar',
-                            label: 'Volume (Mds €)',
-                            data: [3.2, 1.8, 2.4, 2.7],
-                            backgroundColor: 'rgba(214, 211, 209, 0.8)', // Stone-300
+                            label: 'Montant Global (Milliards €)',
+                            data: [3.2, 1.8, 2.4, 2.9],
+                            backgroundColor: 'rgba(214, 211, 209, 0.7)',
                             yAxisID: 'y'
                         }
                     ]
@@ -390,26 +696,26 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: { position: 'left', title: {display:true, text:'Volume (Mds €)'}},
-                        y1: { position: 'right', grid: {display:false}, title: {display:true, text:'Nb de deals'} }
+                        y: { position: 'left', title: {display:true, text:'Volume global (€)'}},
+                        y1: { position: 'right', grid: {display:false}, title: {display:true, text:'Transactions'} }
                     }
                 }
             });
 
-            // Chart 2: Niches (Doughnut)
+            // Chart 2: Niches
             const ctxNiche = document.getElementById('chartNiche').getContext('2d');
             new Chart(ctxNiche, {
                 type: 'doughnut',
                 data: {
-                    labels: ['SaaS / IA Data', 'Plateforme / Courtage Pro', 'Climat / Paramétrique', 'Santé & Bien-être', 'Mobilité & Cyber'],
+                    labels: ['SaaS / IA Data', 'Embedded / Courtage Pro', 'Climat & Paramétrique', 'Santé & Bien-être', 'Cyber / Risques complexes'],
                     datasets: [{
-                        data: [35, 25, 20, 12, 8],
+                        data: [40, 25, 15, 12, 8],
                         backgroundColor: [
-                            '#0f766e', // Teal-700
-                            '#d6d3d1', // Stone-300
-                            '#84cc16', // Lime-500
-                            '#fb923c', // Orange-400
-                            '#57534e'  // Stone-600
+                            '#0f766e',
+                            '#d6d3d1',
+                            '#84cc16',
+                            '#f97316',
+                            '#57534e'
                         ],
                         borderWidth: 0
                     }]
@@ -418,14 +724,15 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'right' }
+                        legend: { position: 'bottom' }
                     },
-                    cutout: '65%'
+                    cutout: '70%'
                 }
             });
 
-            // Init Top 20 Data
+            // Init Sub-Data Tables
             renderTop20Grid(top20Data);
+            renderMnaTable(mnaBrokerageData);
         };
     </script>
 </body>
